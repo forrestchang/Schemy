@@ -74,3 +74,21 @@ def standard_env():
     return env
 
 global_env = standard_env()
+
+
+def eval(x, env=global_env):
+    if isinstance(x, Symbol):
+        return env[x]
+    elif not isinstance(x, List):
+        return x
+    elif x[0] == 'if':
+        (_, test, conseq, alt) = x
+        exp = (conseq if eval(test, env) else alt)
+        return eval(exp, env)
+    elif x[0] == 'define':
+        (_, var, exp) = x
+        env[var] = eval(exp, env)
+    else:
+        proc = eval(x[0], env)
+        args = [eval(arg, env) for arg in x[1:]]
+        return proc(*args)

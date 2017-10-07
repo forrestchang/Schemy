@@ -32,6 +32,6 @@ def atom(token):
         return int(token)
     except ValueError:
         try:
-            return fload(token)
+            return float(token)
         except ValueError:
             return Symbol(token)

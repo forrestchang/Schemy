@@ -5,7 +5,6 @@ import operator as op
 Symbol = str
 List = list
 Number = (int, float)
-Env = dict
 
 
 def tokenize(chars):
@@ -42,16 +41,37 @@ def atom(token):
             return Symbol(token)
 
 
+class Env(dict):
+    """环境是以 {'var':val} 为键对的字典,它还带着一个纸箱外层环境的引用"""
+    def __init__(self, parms=(), args=(), outer=None):
+        self.update(zip(parms, args))
+        self.outer = outer
+
+    def find(self, var):
+        """寻找变量出现的最内层环境"""
+        return self if (var in self) else self.outer.find(var)
+
+
+class Procedure(object):
+
+    def __init__(self, parms, body, env):
+        self.parms = parms
+        self.body = body
+        self.env = env
+
+    def __call__(self, *args):
+        return eval(self.body, Env(self.parms, args, self.env))
+
+
 def standard_env():
     env = Env()
     env.update(vars(math))
     env.update({
-        '+': op.add, '-': op.sub, '*': op.mul, '/': op.div,
+        '+': op.add, '-': op.sub, '*': op.mul, '/': op.truediv,
         '>': op.gt, '<': op.lt, '>=': op.ge, '<=': op.le,
         '=': op.eq,
         'abs': abs,
         'append': op.add,
-        'apply': apply,
         'begin': lambda *x: x[-1],
         'car': lambda x: x[0],
         'cdr': lambda x: x[1:],
@@ -98,7 +118,7 @@ def eval(x, env=global_env):
 def repl(prompt='schemy>>> '):
     while True:
         try:
-            val = eval(parse(raw_input(prompt)))
+            val = eval(parse(input(prompt)))
             if val is not None:
                 print(schemestr(val))
         except (SyntaxError, TypeError) as e:

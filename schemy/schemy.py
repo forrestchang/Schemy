@@ -43,7 +43,8 @@ def atom(token):
 
 class Env(dict):
     """环境是以 {'var':val} 为键对的字典,它还带着一个纸箱外层环境的引用"""
-    def __init__(self, parms=(), args=(), outer=None):
+    def __init__(self, parms=(), args=(), outer=None, **kwargs):
+        super().__init__(**kwargs)
         self.update(zip(parms, args))
         self.outer = outer
 

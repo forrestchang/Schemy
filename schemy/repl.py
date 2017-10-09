@@ -12,7 +12,7 @@ def schemestr(exp):
         return str(exp)
 
 
-def repl(prompt='schemy>>> '):
+def repl(prompt='Schemy >>> '):
     while True:
         try:
             val = eval(parse(input(prompt)))
@@ -22,7 +22,3 @@ def repl(prompt='schemy>>> '):
             print(e)
         # except KeyError as e:
         #     print('invalid key', e.args)
-
-
-if __name__ == '__main__':
-    repl()

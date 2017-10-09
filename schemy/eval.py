@@ -29,7 +29,6 @@ def evaluate(x, env=global_env):
         exp = (conseq if evaluate(test, env) else alt)
         return evaluate(exp, env)
     elif x[0] == 'define':
-        import ipdb; ipdb.set_trace()
         (_, var, exp) = x
         env[var] = evaluate(exp, env)
     elif x[0] == 'set!':    # 赋值

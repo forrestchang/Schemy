@@ -5,6 +5,13 @@ from schemy.tokenizer import parse
 from schemy.types import List
 
 
+def schemestr(exp):
+    if isinstance(exp, List):
+        return '(' + ' '.join(map(schemestr, exp)) + ')'
+    else:
+        return str(exp)
+
+
 def repl(prompt='schemy>>> '):
     while True:
         try:
@@ -15,10 +22,3 @@ def repl(prompt='schemy>>> '):
             print(e)
         # except KeyError as e:
         #     print('invalid key', e.args)
-
-
-def schemestr(exp):
-    if isinstance(exp, List):
-        return '(' + ' '.join(map(schemestr, exp)) + ')'
-    else:
-        return str(exp)

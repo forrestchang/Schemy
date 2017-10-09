@@ -2,9 +2,6 @@
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
 
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
+Symbol = str
+List = list
+Number = (int, float)

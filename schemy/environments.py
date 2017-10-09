@@ -3,7 +3,8 @@
 
 import math
 import operator as op
-from schemy.types import Symbol, List, Number
+
+from .types import Symbol, Number
 
 
 class Env(dict):
@@ -21,8 +22,14 @@ def standard_env():
     env = Env()
     env.update(vars(math))
     env.update({
-        '+': op.add, '-': op.sub, '*': op.mul, '/': op.truediv,
-        '>': op.gt, '<': op.lt, '>=': op.ge, '<=': op.le,
+        '+': op.add,
+        '-': op.sub,
+        '*': op.mul,
+        '/': op.truediv,
+        '>': op.gt,
+        '<': op.lt,
+        '>=': op.ge,
+        '<=': op.le,
         '=': op.eq,
         'abs': abs,
         'append': op.add,

@@ -2,7 +2,7 @@
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
 import unittest
-from schemy.tokenizer import tokenize, read_from_tokens, parse, atom
+from schemy.tokenizer import tokenize, parse, atom
 from schemy.types import Symbol
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
-from schemy.types import Symbol, List, Number
+from .types import Symbol
 
 
 def tokenize(chars):

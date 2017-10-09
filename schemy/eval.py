@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
-from schemy.types import Symbol, List, Number
-from schemy.environments import Env, global_env
+from .types import Symbol, List
+from .environments import Env, global_env
 
 
 class Procedure(object):
@@ -13,10 +13,10 @@ class Procedure(object):
         self.env = env
 
     def __call__(self, *args):
-        return eval(self.body, Env(self.parms, args, self.env))
+        return evaluate(self.body, Env(self.parms, args, self.env))
 
 
-def eval(x, env=global_env):
+def evaluate(x, env=global_env):
     if isinstance(x, Symbol):   # 变量引用
         return env[x]
     elif not isinstance(x, List):   # 字面常量
@@ -26,18 +26,19 @@ def eval(x, env=global_env):
         return exp
     elif x[0] == 'if':
         (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
-        return eval(exp, env)
+        exp = (conseq if evaluate(test, env) else alt)
+        return evaluate(exp, env)
     elif x[0] == 'define':
+        import ipdb; ipdb.set_trace()
         (_, var, exp) = x
-        env[var] = eval(exp, env)
+        env[var] = evaluate(exp, env)
     elif x[0] == 'set!':    # 赋值
         (_, var, exp) = x
-        env.find(var)[var] = eval(exp, env)
+        env.find(var)[var] = evaluate(exp, env)
     elif x[0] == 'lambda':  # 过程
         (_, parms, body) = x
         return Procedure(parms, body, env)
     else:   # 过程调用
-        proc = eval(x[0], env)
-        args = [eval(arg, env) for arg in x[1:]]
+        proc = evaluate(x[0], env)
+        args = [evaluate(arg, env) for arg in x[1:]]
         return proc(*args)

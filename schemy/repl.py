@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
-from schemy.tokenizer import parse
-from schemy.types import List
+from .tokenizer import parse
+from .types import List
 
 
 def schemestr(exp):
@@ -22,3 +22,7 @@ def repl(prompt='schemy>>> '):
             print(e)
         # except KeyError as e:
         #     print('invalid key', e.args)
+
+
+if __name__ == '__main__':
+    repl()

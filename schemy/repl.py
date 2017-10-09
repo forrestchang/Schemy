@@ -3,6 +3,7 @@
 
 from .tokenizer import parse
 from .types import List
+from .eval import evaluate
 
 
 def schemestr(exp):
@@ -15,7 +16,7 @@ def schemestr(exp):
 def repl(prompt='Schemy >>> '):
     while True:
         try:
-            val = eval(parse(input(prompt)))
+            val = evaluate(parse(input(prompt)))
             if val is not None:
                 print(schemestr(val))
         except (SyntaxError, TypeError) as e:

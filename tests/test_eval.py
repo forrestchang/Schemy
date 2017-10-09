@@ -18,7 +18,8 @@ class TestEval(unittest.TestCase):
         self.assertEqual(evaluate(parse('(if (> 10 5) 10 5)')), 10)
 
     def test_eval_define(self):
-        self.assertEqual(evaluate(parse('(define r 10) (r)')), 10)
+        evaluate(parse('(define r 10)'))
+        self.assertEqual(evaluate(parse('r')), 10)
 
 
 if __name__ == '__main__':

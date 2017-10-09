@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
+from .eval import evaluate
 from .tokenizer import parse
 from .types import List
-from .eval import evaluate
 
 
 def schemestr(exp):

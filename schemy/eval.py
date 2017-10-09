@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
-from .types import Symbol, List
 from .environments import Env, global_env
+from .types import Symbol, List
 
 
 class Procedure(object):
@@ -18,7 +18,7 @@ class Procedure(object):
 
 def evaluate(x, env=global_env):
     if isinstance(x, Symbol):   # 变量引用
-        return env[x]
+        return env.find(x)[x]
     elif not isinstance(x, List):   # 字面常量
         return x
     elif x[0] == 'quote':

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
+import unittest
+
 from schemy.eval import evaluate
 from schemy.tokenizer import parse
-import unittest
 
 
 class TestEval(unittest.TestCase):
@@ -20,6 +21,13 @@ class TestEval(unittest.TestCase):
     def test_eval_define(self):
         evaluate(parse('(define r 10)'))
         self.assertEqual(evaluate(parse('r')), 10)
+
+    def test_eval_set(self):
+        pass
+
+    def test_eval_lambda(self):
+        evaluate(parse('(define shit (lambda x (* x x)))'))
+        self.assertEqual(evaluate(parse('(shit 10)')), 100)
 
 
 if __name__ == '__main__':

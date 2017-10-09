@@ -98,10 +98,13 @@ global_env = standard_env()
 
 
 def eval(x, env=global_env):
-    if isinstance(x, Symbol):
+    if isinstance(x, Symbol):   # 变量引用
         return env[x]
-    elif not isinstance(x, List):
+    elif not isinstance(x, List):   # 字面常量
         return x
+    elif x[0] == 'quote':
+        (_, exp) = x
+        return exp
     elif x[0] == 'if':
         (_, test, conseq, alt) = x
         exp = (conseq if eval(test, env) else alt)
@@ -109,7 +112,13 @@ def eval(x, env=global_env):
     elif x[0] == 'define':
         (_, var, exp) = x
         env[var] = eval(exp, env)
-    else:
+    elif x[0] == 'set!':    # 赋值
+        (_, var, exp) = x
+        env.find(var)[var] = eval(exp, env)
+    elif x[0] == 'lambda':  # 过程
+        (_, parms, body) = x
+        return Procedure(parms, body, env)
+    else:   # 过程调用
         proc = eval(x[0], env)
         args = [eval(arg, env) for arg in x[1:]]
         return proc(*args)
@@ -124,8 +133,8 @@ def repl(prompt='schemy>>> '):
                 print(schemestr(val))
         except (SyntaxError, TypeError) as e:
             print(e)
-        except KeyError as e:
-            print('invalid key', e.args)
+        # except KeyError as e:
+        #     print('invalid key', e.args)
 
 
 

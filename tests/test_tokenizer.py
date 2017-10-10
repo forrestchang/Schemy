@@ -8,9 +8,13 @@ from schemy.types import Symbol
 
 class TestTokenizer(unittest.TestCase):
 
-    def test_tokenize(self):
+    def test_tokenize_number(self):
         self.assertEqual(tokenize('1'), ['1'])
+
+    def test_tokenize_nil(self):
         self.assertEqual(tokenize('()'), ['(', ')'])
+
+    def test_tokenize_base_calc(self):
         self.assertEqual(tokenize('(+ 1 2)'), ['(', '+', '1', '2', ')'])
         self.assertEqual(
             tokenize('(* (+ 1 2) (- 3 4))'),

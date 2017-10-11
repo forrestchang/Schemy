@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-
+from schemy.tokenizer import parse
 from .environments import Env, global_env
 from .types import Symbol, List
 
@@ -41,3 +41,7 @@ def evaluate(x, env=global_env):
         proc = evaluate(x[0], env)
         args = [evaluate(arg, env) for arg in x[1:]]
         return proc(*args)
+
+
+def run(program):
+    return evaluate(parse(program))

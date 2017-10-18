@@ -2,7 +2,7 @@
 # Author: Forrest Chang (forrestchang7@gmail.com)
 import numbers
 
-from schemy.exception import bad_type, SchemeError
+from schemy.exception import bad_type, SchemeError, check_type
 
 
 class SchemeValue:
@@ -225,3 +225,39 @@ def scbool(x):
     """
     return scheme_true if x else scheme_false
 
+
+# ------
+# Numbers
+# ------
+
+def _check_num(x, name):
+    """Returns x if it is a number. Otherwise, indicate a type error in argument 1 of operation name."""
+    return check_type(x, scheme_numberp, 1, name)
+
+
+class SchemeNumber(SchemeValue):
+    """The parent class of all Scheme numeric types."""
+
+    def numbrep(self):
+        return scheme_true
+
+    def __repr__(self):
+        return 'scnum({})'.format(self)
+
+    def eq(self, y):
+        return scbool(self == _check_num(y, '='))
+
+    def ltp(self, y):
+        return scbool(self < _check_num(y, '<'))
+
+    def gtp(self, y):
+        return scbool(self > _check_num(y, ">"))
+
+    def lep(self, y):
+        return scbool(self <= _check_num(y, "<="))
+
+    def gep(self, y):
+        return scbool(self >= _check_num(y, ">="))
+
+    def zerop(self):
+        return scbool(self == 0)

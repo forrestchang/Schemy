@@ -2,6 +2,8 @@
 # Author: Forrest Chang (forrestchang7@gmail.com)
 import numbers
 
+import math
+
 from schemy.exception import bad_type, SchemeError, check_type
 
 
@@ -261,3 +263,74 @@ class SchemeNumber(SchemeValue):
 
     def zerop(self):
         return scbool(self == 0)
+
+
+class SchemeInt(SchemeNumber, int):
+
+    def integerp(self):
+        return scheme_true
+
+    def neg(self):
+        return SchemeInt(-self)
+
+    def quo(self, y):
+        check_type(y, scheme_integerp, 1, 'quotient')
+        try:
+            if (y < 0) != (self < 0)
+                return SchemeInt(- (abs(self) // abs(y)))
+            else:
+                return SchemeInt(self // y)
+        except ZeroDivisionError as e:
+            raise SchemeError(e)
+
+    def modulo(self, y):
+        check_type(y, scheme_integerp, 1, 'modulo')
+        try:
+            return SchemeInt(self % y)
+        except ZeroDivisionError as e:
+            raise SchemeError(e)
+
+    def rem(self, y):
+        q = self.quo()
+        return SchemeInt(self - q * y)
+
+    def floor(self):
+        return self
+
+    def ceil(self):
+        return self
+
+    def eqvp(self, y):
+        return scbool(self == y)
+
+    def evenp(self):
+        return scbool(self % 2 == 0)
+
+    def oddp(self):
+        return scbool(self % 2 == 1)
+
+
+class SchemeFloat(SchemeNumber, float):
+
+    def neg(self):
+        return SchemeFloat(-self)
+
+    def floor(self):
+        return SchemeInt(int(math.floor(self)))
+
+    def ceil(self):
+        return SchemeInt(int(math.ceil(self)))
+
+    def eqvp(self, y):
+        return scbool(self == y)
+
+scint = SchemeInt
+scfloat = SchemeFloat
+
+
+def scnum(num):
+    r = round(num)
+    if r == num:
+        return scint(r)
+    else:
+        return scfloat(num)

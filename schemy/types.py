@@ -347,3 +347,36 @@ class SchemeSymbol(SchemeValue):
     def __init__(self, name):
         assert type(name) is str, 'invalid type of symbol name: {}'.format(type(name))
         self.name = name
+
+    def symbolp(self):
+        return scheme_true
+
+    def __repr__(self):
+        if self is _all_symbols.get(self.name, None):
+            return 'intern("{}")'.format(self.name)
+        else:
+            return 'SchemeSymbol("{}")'.format(self.name)
+
+    def __str__(self):
+        return self.name
+
+_all_symbols = {}
+
+
+def intern(name):
+    """
+    If name is a string, the canonical symbol named name.
+    If name if a symbol, a canonical symbol with that name.
+    """
+    if isinstance(name, SchemeSymbol):
+        if str(name) in _all_symbols:
+            return _all_symbols[str(name)]
+        else:
+            _all_symbols[str(name)] = name
+            return name
+    if name in _all_symbols:
+        return _all_symbols[name]
+    else:
+        sym = SchemeSymbol(name)
+        _all_symbols[name] = sym
+        return sym

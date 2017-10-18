@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-import numbers
-
 import math
-
+import numbers
+import operator
 import re
+import sys
+import turtle
 
 from schemy.exception import bad_type, SchemeError, check_type
 
@@ -278,7 +279,7 @@ class SchemeInt(SchemeNumber, int):
     def quo(self, y):
         check_type(y, scheme_integerp, 1, 'quotient')
         try:
-            if (y < 0) != (self < 0)
+            if (y < 0) != (self < 0):
                 return SchemeInt(- (abs(self) // abs(y)))
             else:
                 return SchemeInt(self // y)
@@ -419,4 +420,622 @@ scstr = SchemeStr
 
 
 class Pair(SchemeValue):
-    pass
+    """
+    A pair has two instance attributes: first and second.
+
+    >>> s = Pair(1, Pair(2, nil))
+    >>> s
+    Pair(1, Pair(2, nil))
+    >>> print(s)
+    (1 2)
+    >>> len(s)
+    2
+    >>> s[1]
+    scnum(2)
+    >>> print(s.map(lambda x: x+5))
+    (6 7)
+    """
+
+    def __init__(self, first, second):
+        first = scheme_coerce(first)
+        second = scheme_coerce(second)
+
+        assert isinstance(first, SchemeValue) and \
+            isinstance(second, SchemeValue)
+
+        self.first = first
+        self.second = second
+
+        def atomp(self):
+            return scheme_false
+
+        def pairp(self):
+            return scheme_true
+
+        def car(self):
+            return self.first
+
+        def cdr(self):
+            return self.second
+
+        def set_car(self, v):
+            self.first = v
+            return okay
+
+        def set_cdr(self, v):
+            self.second = v
+            return okay
+
+        def length(self):
+            return SchemeInt(self.__len__())
+
+        def equalp(self, y):
+            return scbool(self == y)
+
+        def listp(self):
+            return self._list_end().nullp()
+
+        def _list_end(self):
+            p0 = self
+            p1 = self.second
+            while p1 is not p0 and p1.pairp():
+                p1 = p1.second
+                if p1 is p0 or not p1.pairp():
+                    break
+                p0 = p0.second
+            return p1
+
+        def __repr__(self):
+            def uncoerce(x):
+                if scheme_numberp(x):
+                    return x + 0
+                elif scheme_symbolp(x):
+                    return str(x)
+                else:
+                    return x
+
+            return "Pair({0!r}, {1!r})".format(uncoerce(self.first),
+                                               uncoerce(self.second))
+
+        def __str__(self):
+            s = "(" + str(self.first)
+            second = self.second
+            while second.pairp():
+                s += " " + str(second.car())
+                second = second.cdr()
+            if not second.nullp():
+                s += " . " + str(second)
+            return s + ")"
+
+        def __len__(self):
+            if not self._list_end().nullp():
+                raise SchemeError("length attempted on improper list")
+            n, second = 1, self.second
+            while second.pairp():
+                n += 1
+                second = second.second
+            return n
+
+        def __getitem__(self, k):
+            if k < 0:
+                raise IndexError("negative index into list")
+            y = self
+            for _ in range(k):
+                if y.second is nil:
+                    raise IndexError("list index out of bounds")
+                elif not isinstance(y.second, Pair):
+                    raise SchemeError("ill-formed list")
+                y = y.second
+            return y.first
+
+        def __eq__(self, p):
+            if not isinstance(p, Pair):
+                return False
+            return bool(self.first.equalp(p.first) and self.second.equalp(p.second))
+
+        def map(self, fn):
+            """Return a Scheme list after mapping Python function FN to SELF."""
+            mapped = fn(self.first)
+            if self.second.nullp() or self.second.pairp():
+                return Pair(mapped, self.second.map(fn))
+            else:
+                raise SchemeError("ill-formed list")
+
+        def append(self, y):
+            if not self.listp():
+                raise SchemeError("attempt to append to improper list")
+            result = last = Pair(self.first, y)
+            p = self.second
+            while p is not nil:
+                last.second = Pair(p.first, y)
+                last = last.second
+                p = p.second
+            return result
+
+
+class nil(SchemeValue):
+    """The empty list"""
+
+    def listp(self):
+        return scheme_true
+
+    def nullp(self):
+        return scheme_true
+
+    def length(self):
+        return SchemeInt(0)
+
+    def __repr__(self):
+        return "nil"
+
+    def __str__(self):
+        return "()"
+
+    def __len__(self):
+        return 0
+
+    def __getitem__(self, k):
+        if k < 0:
+            raise IndexError("negative index into list")
+        raise IndexError("list index out of bounds")
+
+    def append(self, y):
+        return y
+
+    def map(self, fn):
+        return self
+
+nil = nil()
+
+
+# ----------------
+# Primitive Operations
+# ----------------
+
+_PRIMITIVES = []
+
+
+def primitive(*names):
+    """An annotation to record a Python function as a primitive procedure."""
+    def add(func):
+        _PRIMITIVES.append((names, func))
+        return func
+    return add
+
+
+def get_primitive_bindings():
+    """The list of all (names, funcs) binds recorded by @primitive"""
+    return _PRIMITIVES
+
+
+@primitive('boolean?')
+def scheme_booleanp(x):
+    """True is x is #t or #f."""
+    return x.booleanp()
+
+
+@primitive('not')
+def scheme_not(x):
+    """True if x is #f"""
+    return x.notp()
+
+
+@primitive('eq?')
+def scheme_eqp(x, y):
+    return x.eqp(y)
+
+
+@primitive("eqv?")
+def scheme_eqvp(x, y):
+    return x.eqvp(y)
+
+
+@primitive("equal?")
+def scheme_equalp(x, y):
+    return x.equalp(y)
+
+
+@primitive("pair?")
+def scheme_pairp(x):
+    return x.pairp()
+
+
+@primitive("null?")
+def scheme_nullp(x):
+    return x.nullp()
+
+
+@primitive("list?")
+def scheme_listp(x):
+    return x.listp()
+
+
+@primitive("length")
+def scheme_length(x):
+    return x.length()
+
+
+@primitive("cons")
+def scheme_cons(x, y):
+    return x.cons(y)
+
+
+@primitive("car")
+def scheme_car(x):
+    return x.car()
+
+
+@primitive("cdr")
+def scheme_cdr(x):
+    return x.cdr()
+
+
+@primitive("list")
+def scheme_list(*vals):
+    result = nil
+    for i in range(len(vals)-1, -1, -1):
+        result = scheme_cons(vals[i], result)
+    return result
+
+
+@primitive("append")
+def scheme_append(*vals):
+    if len(vals) == 0:
+        return nil
+    result = vals[-1]
+    for i in range(len(vals)-2, -1, -1):
+        result = vals[i].append(result)
+    return result
+
+
+@primitive("string?")
+def scheme_stringp(x):
+    return x.stringp()
+
+
+@primitive("symbol?")
+def scheme_symbolp(x):
+    return x.symbolp()
+
+
+@primitive("number?")
+def scheme_numberp(x):
+    return x.numberp()
+
+
+@primitive("integer?")
+def scheme_integerp(x):
+    return x.integerp()
+
+
+def _check_nums(*vals):
+    """Check that all args in vals are numbers."""
+    for i, v in enumerate(vals):
+        if not scheme_numberp(v):
+            msg = 'operand {0} ({1}) is not a number'
+            raise SchemeError(msg.format(i, v))
+
+
+def _arith(fn, init, vals):
+    """
+    Perform the fn operation on the number values of VALS, with INIT as
+    the value when VALS is empty. Returns the result as a Scheme value.
+    """
+    _check_nums(*vals)
+    s = init
+    for val in vals:
+        s = fn(s, val)
+    if round(s) == s:
+        return SchemeInt(round(s))
+    else:
+        return SchemeFloat(s)
+
+
+@primitive("+")
+def scheme_add(*vals):
+    return _arith(operator.add, 0, vals)
+
+
+@primitive("-")
+def scheme_sub(val0, *vals):
+    if len(vals) == 0:
+        return val0.neg()
+    return _arith(operator.sub, val0, vals)
+
+
+@primitive("*")
+def scheme_mul(*vals):
+    return _arith(operator.mul, 1, vals)
+
+
+@primitive("/")
+def scheme_div(*vals):
+    try:
+        if len(vals) == 1:
+            return _arith(operator.truediv, scnum(1), vals)
+        elif len(vals) == 0:
+            raise SchemeError("/ takes at least one argument")
+        return _arith(operator.truediv, vals[0], vals[1:])
+    except ZeroDivisionError as err:
+        raise SchemeError(err)
+
+
+@primitive("quotient")
+def scheme_quo(val0, val1):
+    return val0.quo(val1)
+
+
+@primitive("modulo")
+def scheme_modulo(val0, val1):
+    return val0.modulo(val1)
+
+
+@primitive("remainder")
+def scheme_rem(val0, val1):
+    return val0.rem(val1)
+
+
+@primitive("floor")
+def scheme_floor(val):
+    return val.floor()
+
+
+@primitive("ceil")
+def scheme_ceil(val):
+    return val.ceil()
+
+
+@primitive("=")
+def scheme_eq(x, y):
+    return x.eq(y)
+
+
+@primitive("<")
+def scheme_lt(x, y):
+    return x.ltp(y)
+
+
+@primitive(">")
+def scheme_gt(x, y):
+    return x.gtp(y)
+
+
+@primitive("<=")
+def scheme_le(x, y):
+    return x.lep(y)
+
+
+@primitive(">=")
+def scheme_ge(x, y):
+    return x.gep(y)
+
+
+@primitive("even?")
+def scheme_evenp(x):
+    return x.evenp()
+
+
+@primitive("odd?")
+def scheme_oddp(x):
+    return x.oddp()
+
+
+@primitive("zero?")
+def scheme_zerop(x):
+    return x.zerop()
+
+
+@primitive("atom?")
+def scheme_atomp(x):
+    return x.atomp()
+
+
+@primitive("display")
+def scheme_display(val):
+    print(str(val), end="")
+    return okay
+
+
+@primitive("print")
+def scheme_print(val):
+    print(val.print_repr())
+    return okay
+
+
+@primitive("newline")
+def scheme_newline():
+    print()
+    sys.stdout.flush()
+    return okay
+
+
+@primitive("error")
+def scheme_error(msg = None):
+    msg = "" if msg is None else str(msg)
+    raise SchemeError(msg)
+
+
+@primitive("exit")
+def scheme_exit():
+    raise EOFError
+
+##
+## Turtle graphics (non-standard)
+##
+
+_turtle_screen_on = False
+
+
+def turtle_screen_on():
+    return _turtle_screen_on
+
+
+def _tscheme_prep():
+    global _turtle_screen_on
+    if not _turtle_screen_on:
+        _turtle_screen_on = True
+        turtle.title("Scheme Turtles")
+        turtle.mode('logo')
+
+
+@primitive("forward", "fd")
+def tscheme_forward(n):
+    """Move the turtle forward a distance N units on the current heading."""
+    _check_nums(n)
+    _tscheme_prep()
+    turtle.forward(n)
+    return okay
+
+
+@primitive("backward", "back", "bk")
+def tscheme_backward(n):
+    """Move the turtle backward a distance N units on the current heading,
+    without changing direction."""
+    _check_nums(n)
+    _tscheme_prep()
+    turtle.backward(n)
+    return okay
+
+
+@primitive("left", "lt")
+def tscheme_left(n):
+    """Rotate the turtle's heading N degrees counterclockwise."""
+    _check_nums(n)
+    _tscheme_prep()
+    turtle.left(n)
+    return okay
+
+
+@primitive("right", "rt")
+def tscheme_right(n):
+    """Rotate the turtle's heading N degrees clockwise."""
+    _check_nums(n)
+    _tscheme_prep()
+    turtle.right(n)
+    return okay
+
+
+@primitive("circle")
+def tscheme_circle(r, extent = None):
+    """
+    Draw a circle with center R units to the left of the turtle (i.e.,
+    right if N is negative.  If EXTENT is not None, then draw EXTENT degrees
+    of the circle only.  Draws in the clockwise direction if R is negative,
+    and otherwise counterclockwise, leaving the turtle facing along the
+    arc at its end.
+    """
+    if extent is None:
+        _check_nums(r)
+    else:
+        _check_nums(r, extent)
+    _tscheme_prep()
+    turtle.circle(r, extent and extent)
+    return okay
+
+
+@primitive("setposition", "setpos", "goto")
+def tscheme_setposition(x, y):
+    """Set turtle's position to (X,Y), heading unchanged."""
+    _check_nums(x, y)
+    _tscheme_prep()
+    turtle.setposition(x, y)
+    return okay
+
+
+@primitive("setheading", "seth")
+def tscheme_setheading(h):
+    """Set the turtle's heading H degrees clockwise from north (up)."""
+    _check_nums(h)
+    _tscheme_prep()
+    turtle.setheading(h)
+    return okay
+
+
+@primitive("penup", "pu")
+def tscheme_penup():
+    """Raise the pen, so that the turtle does not draw."""
+    _tscheme_prep()
+    turtle.penup()
+    return okay
+
+
+@primitive("pendown", "pd")
+def tscheme_pendown():
+    """Lower the pen, so that the turtle starts drawing."""
+    _tscheme_prep()
+    turtle.pendown()
+    return okay
+
+
+@primitive("showturtle", "st")
+def tscheme_showturtle():
+    """Make turtle visible."""
+    _tscheme_prep()
+    turtle.showturtle()
+    return okay
+
+
+@primitive("hideturtle", "ht")
+def tscheme_hideturtle():
+    """Make turtle visible."""
+    _tscheme_prep()
+    turtle.hideturtle()
+    return okay
+
+
+@primitive("clear")
+def tscheme_clear():
+    """Clear the drawing, leaving the turtle unchanged."""
+    _tscheme_prep()
+    turtle.clear()
+    return okay
+
+
+@primitive("color")
+def tscheme_color(c):
+    """Set the color to C, a string such as '"red"' or '"#ffc0c0"' (representing
+    hexadecimal red, green, and blue values."""
+    _tscheme_prep()
+    check_type(c, scheme_stringp, 0, "color")
+    turtle.color(eval(c))
+    return okay
+
+
+@primitive("begin_fill")
+def tscheme_begin_fill():
+    """Start a sequence of moves that outline a shape to be filled."""
+    _tscheme_prep()
+    turtle.begin_fill()
+    return okay
+
+
+@primitive("end_fill")
+def tscheme_end_fill():
+    """Fill in shape drawn since last begin_fill."""
+    _tscheme_prep()
+    turtle.end_fill()
+    return okay
+
+
+@primitive("exitonclick")
+def tscheme_exitonclick():
+    """Wait for a click on the turtle window, and then close it."""
+    global _turtle_screen_on
+    if _turtle_screen_on:
+        print("Close or click on turtle window to complete exit")
+        turtle.exitonclick()
+        _turtle_screen_on = False
+    return okay
+
+
+@primitive("speed")
+def tscheme_speed(s):
+    """
+    Set the turtle's animation speed as indicated by S (an integer in
+    0-10, with 0 indicating no animation (lines draw instantly), and 1-10
+    indicating faster and faster movement.
+    """
+    check_type(s, scheme_integerp, 0, "speed")
+    _tscheme_prep()
+    turtle.speed(s)
+    return okay

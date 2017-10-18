@@ -62,3 +62,43 @@ def next_candidate_token(line, k):
                 j += 1
             return line[k:j], min(j, len(line))
     return None, len(line)
+
+
+def tokenize_line(line):
+    """ The list of Scheme tokens on line. Excludes comments and whitespace. """
+    result = []
+    text, i = next_candidate_token(line, 0)
+    while text is not None:
+        if text in DELIMITERS:
+            result.append(text)
+        elif text == '#t' or text.lower() == 'true':
+            result.append(True)
+        elif text == '#f' or text.lower() == 'false':
+            result.append(False)
+        elif text == 'nil':
+            result.append(text)
+        elif text[0] in _SYMBOL_CHARS:
+            number = False
+            if text[0] in _NUMERAL_STARTS:
+                try:
+                    result.append(int(text))
+                    number = True
+                except ValueError:
+                    try:
+                        result.append(float(text))
+                        number = True
+                    except ValueError:
+                        pass
+            if not number:
+                if valid_symbol(text):
+                    result.append(text.lower())
+                else:
+                    raise ValueError('invalid numeral or symbol: {}'.format(text))
+        elif text[0] in _STRING_DELIMS:
+            result.append(text)
+        else:
+            print('warning: invalid token: {}'.format(text), file=sys.stderr)
+            print('    ', line, file=sys.stderr)
+            print(' ' * (i+3), '^', file=sys.stderr)
+        text, i = next_candidate_token(line, i)
+    return result

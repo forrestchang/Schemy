@@ -5,7 +5,11 @@ import numbers
 import operator
 import re
 import sys
-import turtle
+
+try:
+    import turtle
+except:
+    print('could not import turtle module', file=sys.stderr)
 
 from schemy.exception import bad_type, SchemeError, check_type
 

@@ -60,3 +60,12 @@ def log(message):
     if type(message) is not str:
         message = str(message)
     print(PREFIX + re.sub('\n', '\n' + PREFIX, message))
+
+
+def log_current_line():
+    """
+    Print info about the current line of code.
+    """
+    frame = inspect.stack()[1]
+    log('Current line: File "{f[1]}", line {f[2]}, in {f[3]}'.format(f=frame))
+

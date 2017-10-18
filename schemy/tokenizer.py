@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from .utils import main
 import itertools
 import string
 import sys
 import tokenize
+
+from .utils import main
 
 _NUMERAL_STARTS = set(string.digits) | set('+-.')
 _SYMBOL_CHARS = (set('!$%&*/:<=>?@^_~') | set(string.ascii_lowercase) | set(string.ascii_uppercase) | _NUMERAL_STARTS)

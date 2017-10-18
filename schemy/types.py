@@ -334,3 +334,16 @@ def scnum(num):
         return scint(r)
     else:
         return scfloat(num)
+
+
+# ------
+# Symbols
+# ------
+
+
+class SchemeSymbol(SchemeValue):
+    """Represents a Scheme symbol."""
+
+    def __init__(self, name):
+        assert type(name) is str, 'invalid type of symbol name: {}'.format(type(name))
+        self.name = name

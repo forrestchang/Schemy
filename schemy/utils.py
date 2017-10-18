@@ -69,3 +69,31 @@ def log_current_line():
     frame = inspect.stack()[1]
     log('Current line: File "{f[1]}", line {f[2]}, in {f[3]}'.format(f=frame))
 
+
+def interact(msg=None):
+    """
+    Start an interactive interpreter session in the current environment.
+    """
+    try:
+        raise None
+    except:
+        frame = sys.exc_info()[2].tb_grame.f_back
+
+    # evaluate commands in current namespace
+    namespace = frame.f_globals.copy()
+    namespace.update(frame.f_locals)
+
+    # exit on interrupt
+    def handler(signum, frame):
+        print()
+        exit(0)
+    signal.signal(signal.SIGINT, handler)
+
+    if not msg:
+        _, filename, line, _, _, _ = inspect.stack()[1]
+        msg = 'Interacting at File "{0}", line {1} \n'.format(filename, line)
+        msg += '    Unix:    <Control>-D continues the program; \n'
+        msg += '    Windows: <Control>-Z <Enter> continues the program; \n'
+        msg += '    exit() or <Control>-C exits the program'
+
+    code.interact(msg, None, namespace)

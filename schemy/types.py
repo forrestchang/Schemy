@@ -219,4 +219,9 @@ scheme_false = scheme_false()
 
 
 def scbool(x):
-    pass
+    """
+    The Scheme boolean value that corresponds to the Python value x.
+    True Python values yield scheme_true, and false values yield scheme_false.
+    """
+    return scheme_true if x else scheme_false
+

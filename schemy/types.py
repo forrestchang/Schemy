@@ -4,6 +4,8 @@ import numbers
 
 import math
 
+import re
+
 from schemy.exception import bad_type, SchemeError, check_type
 
 
@@ -380,3 +382,41 @@ def intern(name):
         sym = SchemeSymbol(name)
         _all_symbols[name] = sym
         return sym
+
+
+# ------
+# Strings
+# ------
+
+
+class SchemeStr(SchemeValue, str):
+
+    def stringp(self):
+        return scheme_true
+
+    def __repr__(self):
+        return 'scstr({!r})'.format(str(self))
+
+    _escape = re.compile(r'''"|\.''')
+
+    def print_repr(self):
+        s = str.__repr__(self)
+        if s[0] == "'":
+            s = s[1:-1]
+            s = SchemeStr._escape.sub(
+                lambda x: (r'\"' if x == '"' else "'" if x == r"\'" else x),
+                s
+            )
+            s = '"' + s + '"'
+        return s
+
+scstr = SchemeStr
+
+
+# -----------------
+# Pairs and Scheme lists
+# -----------------
+
+
+class Pair(SchemeValue):
+    pass

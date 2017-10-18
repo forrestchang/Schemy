@@ -102,3 +102,21 @@ def tokenize_line(line):
             print(' ' * (i+3), '^', file=sys.stderr)
         text, i = next_candidate_token(line, i)
     return result
+
+
+def tokenize_lines(input):
+    """ An iterator that returns list of tokens, one for each line of the iterable input sequence. """
+    return [tokenize_line(line) for line in input]
+
+
+def count_tokens(input):
+    """ Count the number of no-delimiter tokens in input. """
+    return len(list(filter(lambda x: x not in DELIMITERS, itertools.chain(*tokenize_lines(input)))))
+
+
+@main
+def run(*args):
+    file = sys.stdin
+    if args:
+        file = open(args[0], 'r')
+    print('counted ', count_tokens(file), ' non-delimiter tokens')

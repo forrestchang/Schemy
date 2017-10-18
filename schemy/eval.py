@@ -1,47 +1,65 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from schemy.tokenizer import parse
-from .environments import Env, global_env
-from .types import Symbol, List
+
+from .types import *
+from .repl import *
+from .utils import main, trace
 
 
-class Procedure(object):
+def scheme_eval(expr, env):
+    """
+    Evaluate Scheme expression expr in env. I fenv is None, simply
+    returns expr as its value without futher evaluation.
 
-    def __init__(self, parms, body, env):
-        self.parms = parms
-        self.body = body
-        self.env = env
+    >>> expr = read_line("(+ 1 2)")
+    >>> expr
+    Pair('+', Pair(1, Pair(2, nil)))
+    >>> scheme_eval(expr, create_global_frame())
+    scnum(4)
+    """
 
-    def __call__(self, *args):
-        return evaluate(self.body, Env(self.parms, args, self.env))
+    while env is not None:
+
+        if expr is None:
+            raise SchemeError('Cannot evaluate an undefined expression.')
+
+        # Evaluate atoms
+        if scheme_symbolp(expr):
+            expr, env = env.loopup(expr).get_actual_value(), None
+        elif scheme_atomp(expr):
+            env = None
+
+        # All non-atomic expressions are lists
+        elif not scheme_listp(expr):
+            raise SchemeError('malformed list: {}'.format(str(expr)))
+        else:
+            first, rest = scheme_car(expr), scheme_cdr(expr)
+
+            # Evaluate combinations
+            if (scheme_symbolp(first) and first in SPECIAL_FORMS):
+                if proper_tail_recursion:
+                    expr, env = SPECIAL_FORMS[first](rest, env)
+                else:
+                    expr, env = SPECIAL_FORMS[first](rest, env)
+                    expr, env = scheme_eval(expr, env), None
+            else:
+                procedure = scheme_eval(first, env)
+                args = procedure.evaluate_arguments(rest, env)
+                if proper_tail_recursion:
+                    expr, env = procedure.apply(args, env)
+                else:
+                    expr, env = scheme_apply(procedure, args, env), None
+    return expr
+
+# Tail recursion
+proper_tail_recursion = False
 
 
-def evaluate(x, env=global_env):
-    if isinstance(x, Symbol):   # 变量引用
-        return env.find(x)[x]
-    elif not isinstance(x, List):   # 字面常量
-        return x
-    elif x[0] == 'quote':
-        (_, exp) = x
-        return exp
-    elif x[0] == 'if':
-        (_, test, conseq, alt) = x
-        exp = (conseq if evaluate(test, env) else alt)
-        return evaluate(exp, env)
-    elif x[0] == 'define':
-        (_, var, exp) = x
-        env[var] = evaluate(exp, env)
-    elif x[0] == 'set!':    # 赋值
-        (_, var, exp) = x
-        env.find(var)[var] = evaluate(exp, env)
-    elif x[0] == 'lambda':  # 过程
-        (_, parms, body) = x
-        return Procedure(parms, body, env)
-    else:   # 过程调用
-        proc = evaluate(x[0], env)
-        args = [evaluate(arg, env) for arg in x[1:]]
-        return proc(*args)
+def scheme_apply(procedure, args, env):
+    """
+    Apply procedure to argument values args in env.
 
-
-def run(program):
-    return evaluate(parse(program))
+    Returns the resulting Scheme value.
+    """
+    expr, env = procedure.apply(args, env)
+    return scheme_eval(expr, env)

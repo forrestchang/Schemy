@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
-from schemy.repl import repl
+from schemy.eval import run
 
 
 def main():
-    repl()
+    run()
 
 
 if __name__ == '__main__':

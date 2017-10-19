@@ -143,3 +143,14 @@ def do_let_form(vals, env):
     for i in range(0, last):
         scheme_eval(exprs[i], new_env)
     return exprs[last], new_env
+
+
+def do_it_form(vals, env):
+    check_form(vals, 2, 3)
+    predicate = scheme_eval(vals[0], env)
+    if predicate:
+        return vals[1], env
+    elif len(vals) == 3:
+        return vals[2], env
+    return okay, env
+

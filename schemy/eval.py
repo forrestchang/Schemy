@@ -246,3 +246,31 @@ SPECIAL_FORMS = {
     or_sym: do_or_form,
     quote_sym: do_quote_form,
 }
+
+
+@main
+def run(*argv):
+    next_line = buffer_input
+    interactive = True
+    load_files = ()
+    if argv:
+        try:
+            filename = argv[0]
+            if filename == '-load':
+                load_files = argv[1:]
+            else:
+                input_file = open(argv[0])
+                lines = input_file.readline()
+                def next_line():
+                    return buffer_lines(lines)
+                interactive = False
+        except IOError as e:
+            print(e)
+            sys.exit(1)
+    read_eval_print_loop(
+        next_line,
+        create_global_frame(),
+        startup=True,
+        interactive=interactive,
+        load_files=load_files
+    )

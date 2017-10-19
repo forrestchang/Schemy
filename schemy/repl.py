@@ -7,7 +7,7 @@ from schemy.exception import SchemeError, check_type
 from schemy.procedure import PrimitiveProcedure
 from schemy.tokenizer import tokenize_lines, DELIMITERS
 from schemy.types import nil, scnum, scbool, scstr, intern, Pair, scheme_stringp, scheme_symbolp, okay, \
-    get_primitive_bindings
+    get_primitive_bindings, scheme_print
 from schemy.utils import main
 
 

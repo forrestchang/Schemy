@@ -4,6 +4,7 @@
 from schemy.eval import run
 from schemy.utils import main
 
+
 @main
 def repl():
     run()

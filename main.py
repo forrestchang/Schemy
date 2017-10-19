@@ -2,11 +2,8 @@
 # Author: Forrest Chang (forrestchang7@gmail.com)
 
 from schemy.eval import run
+from schemy.utils import main
 
-
-def main():
+@main
+def repl():
     run()
-
-
-if __name__ == '__main__':
-    main()

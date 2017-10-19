@@ -17,7 +17,7 @@ DELIMITERS = _SINGLE_CHAR_TOKENS | {'.', ',', ',@'}
 
 
 def valid_symbol(s):
-    """ Return whethre s is not a well-formed value. """
+    """ Return whether s is not a well-formed value. """
     if len(s) == 0:
         return False
     for c in s:

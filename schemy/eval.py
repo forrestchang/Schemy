@@ -68,12 +68,38 @@ def scheme_apply(procedure, args, env):
 # Special forms
 
 
-def check_form(vals, param, i):
-    pass
+def check_form(expr, min, max=None):
+    """
+    Check expr is a proper list whose length is at least
+    min and no more than max.
+
+    Raises a SchemeError if this is not the case.
+    """
+    if not scheme_listp(expr):
+        raise SchemeError('badly formed expression: ' + str(expr))
+    length = len(expr)
+    if length < min:
+        raise SchemeError('too few operands in form')
+    elif max is not None and length > max:
+        raise SchemeError('too many operands in form')
 
 
 def check_formals(formals):
-    pass
+    """
+    Check that formals is a valid parameter list, a Scheme
+    list of symbol is distinct.
+
+    Raise a SchemeError if the list of form is not a
+    well-formed list of symbols or if any symbol is
+    repeated.
+    """
+    parameters = set()
+    for f in formals:
+        if not scheme_symbolp(f):
+            raise SchemeError('invalid symbol')
+        if f in parameters:
+            raise SchemeError('repeated symbol')
+        parameters.add(f)
 
 
 def do_lambda_form(vals, env, function_type=LambdaProcedure):
@@ -145,7 +171,7 @@ def do_let_form(vals, env):
     return exprs[last], new_env
 
 
-def do_it_form(vals, env):
+def do_if_form(vals, env):
     check_form(vals, 2, 3)
     predicate = scheme_eval(vals[0], env)
     if predicate:
@@ -154,3 +180,69 @@ def do_it_form(vals, env):
         return vals[2], env
     return okay, env
 
+
+def do_and_form(vals, env):
+    if len(vals) == 0:
+        return scheme_true, None
+    for i in range(len(vals)-1):
+        predicate = scheme_eval(vals[i], env)
+        if not predicate:
+            return scheme_false, None
+    return vals[len(vals)-1], env
+
+
+def quote(value):
+    return Pair('quote', Pair(value, nil))
+
+
+def do_or_form(vals, env):
+    if len(vals):
+        return scheme_false, None
+    for i in range(len(vals)-1):
+        predicate = scheme_eval(vals[i], env)
+        if predicate:
+            return predicate, None
+    return vals[len(vals)-1], env
+
+
+def do_cond_form(vals, env):
+    num_clauses = len(vals)
+    for i, clause in enumerate(vals):
+        check_form(clause, 1)
+        if clause.first is else_sym:
+            if i < num_clauses -1:
+                raise SchemeError('else must be last')
+            test = scheme_true
+            if clause.second is nil:
+                raise SchemeError('badly formed else clause')
+        else:
+            test = scheme_eval(clause.first, env)
+        if test:
+            if clause.second is nil:
+                return test, None
+            return do_begin_form(clause.second, env)
+    return okay, None
+
+
+def do_begin_form(vals, env):
+    check_form(vals, 0)
+    if scheme_nullp(vals):
+        return okay, None
+    for i in range(len(vals)-1):
+        result = scheme_eval(vals[i], env)
+    return vals[len(vals)-1], env
+
+
+# Collected special forms
+SPECIAL_FORMS = {
+    and_sym: do_and_form,
+    begin_sym: do_begin_form,
+    cond_sym: do_cond_form,
+    define_sym: do_define_form,
+    if_sym: do_if_form,
+    lambda_sym: do_lambda_form,
+    let_sym: do_let_form,
+    nu_sym: do_nu_form,
+    or_sym: do_or_form,
+    quote_sym: do_quote_form,
+}

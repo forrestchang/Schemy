@@ -1043,3 +1043,21 @@ def tscheme_speed(s):
     _tscheme_prep()
     turtle.speed(s)
     return okay
+
+# Collected symbols with significance to the interpreter
+and_sym = intern('and')
+begin_sym = intern('begin')
+cond_sym = intern("cond")
+define_macro_sym = intern("define-macro")
+define_sym = intern("define")
+else_sym = intern("else")
+if_sym = intern("if")
+lambda_sym = intern("lambda")
+let_sym = intern("let")
+nu_sym = intern("nu")
+or_sym = intern("or")
+quasiquote_sym = intern("quasiquote")
+quote_sym = intern("quote")
+set_bang_sym = intern("set!")
+unquote_splicing_sym = intern("unquote-splicing")
+unquote_sym = intern("unquote")

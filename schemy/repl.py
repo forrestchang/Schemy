@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
 from schemy.buffer import Buffer, InputReader, LineReader
+from schemy.environments import Frame
+from schemy.eval import scheme_eval, scheme_apply
+from schemy.exception import SchemeError, check_type
+from schemy.procedure import PrimitiveProcedure
 from schemy.tokenizer import tokenize_lines, DELIMITERS
-from schemy.types import nil, scnum, scbool, scstr, intern, Pair
+from schemy.types import nil, scnum, scbool, scstr, intern, Pair, scheme_stringp, scheme_symbolp, okay, \
+    get_primitive_bindings
 from schemy.utils import main
 
 
@@ -103,7 +108,79 @@ def read_line(line):
     return scheme_read(Buffer(tokenize_lines([line])))
 
 
-# repl
+def read_eval_print_loop(next_line, env, quiet=False, startup=False, interactive=False, load_files=()):
+    if startup:
+        for filename in load_files:
+            scheme_load(scstr(filename), True, env)
+    while True:
+        try:
+            src = next_line()
+            while src.more_on_line:
+                expression = scheme_read(src)
+            result = scheme_eval(expression, env)
+            if not quiet and result is not None:
+                scheme_print(result)
+        except (SchemeError, SyntaxError, ValueError, RuntimeError) as e:
+            if (isinstance(e, RuntimeError) and
+                'maximum recursion depth exceeded' not in e.args[0]):
+                raise
+            print('Error: ', e)
+        except KeyboardInterrupt:
+            if not startup:
+                raise
+            print('\nKeboardInterrupt')
+            if not interactive:
+                return
+        except EOFError:
+            return
+
+
+def scheme_load(*args):
+    """Load a Scheme source file."""
+    if not (2 <= len(args) <= 3):
+        vals = args[:-1]
+        raise SchemeError('wrong number of arguments to load: {}'.format(vals))
+    sym = args[0]
+    quiet = args[1] if len(args) > 2 else True
+    env = args[-1]
+    if (scheme_stringp(sym)):
+        sym = intern(str(sym))
+    check_type(sym, scheme_symbolp, 0, 'load')
+    with scheme_open(str(sym)) as infile:
+        lines = infile.readlines()
+    args = (lines, None) if quiet else (lines,)
+    def next_line():
+        return buffer_lines(*args)
+    read_eval_print_loop(next_line, env.global_frame(), quiet=quiet)
+    return okay
+
+
+def scheme_open(filename):
+    try:
+        return open(filename)
+    except IOError as exc:
+        if filename.endwith('.scm'):
+            raise SchemeError(str(exc))
+    try:
+        return open(filename + '.scm')
+    except IOError as exc:
+        raise SchemeError(str(exc))
+
+
+def create_global_frame():
+    """Init and return a single frame env with build in names."""
+    env = Frame(None)
+    env.define('eval', PrimitiveProcedure(scheme_eval, True))
+    env.define('apply', PrimitiveProcedure(scheme_apply, True))
+    env.define('load', PrimitiveProcedure(scheme_load, True))
+
+    for names, func in get_primitive_bindings():
+        for name in names:
+            proc = PrimitiveProcedure(func)
+            env.define(name, proc)
+    return env
+
+
 @main
 def read_print_loop():
     """Run a read-print loop for Scheme expressions."""

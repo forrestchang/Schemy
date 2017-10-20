@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from schemy.buffer import Buffer, InputReader, LineReader
-from schemy.environments import Frame
-from schemy.eval import scheme_eval, scheme_apply
-from schemy.exception import SchemeError, check_type
-from schemy.procedure import PrimitiveProcedure
-from schemy.tokenizer import tokenize_lines, DELIMITERS
-from schemy.types import nil, scnum, scbool, scstr, intern, Pair, scheme_stringp, scheme_symbolp, okay, \
+from .buffer import Buffer, InputReader, LineReader
+from .environments import Frame
+from .eval import scheme_eval, scheme_apply
+from .exception import SchemeError, check_type
+from .procedure import PrimitiveProcedure
+from .tokenizer import tokenize_lines, DELIMITERS
+from .types import nil, scnum, scbool, scstr, intern, Pair, scheme_stringp, scheme_symbolp, okay, \
     get_primitive_bindings, scheme_print
-from schemy.utils import main
+from .utils import main
 
 
 def scheme_read(src):

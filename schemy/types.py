@@ -11,7 +11,7 @@ try:
 except:
     print('could not import turtle module', file=sys.stderr)
 
-from schemy.exception import bad_type, SchemeError, check_type
+from .exception import bad_type, SchemeError, check_type
 
 
 class SchemeValue:

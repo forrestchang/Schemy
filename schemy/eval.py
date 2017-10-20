@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from schemy.procedure import LambdaProcedure, NuProcedure
+from .procedure import LambdaProcedure, NuProcedure
 from .types import *
 from .repl import *
 from .utils import main, trace

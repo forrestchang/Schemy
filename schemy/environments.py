@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from schemy.exception import SchemeError
-from schemy.types import intern, scheme_car, nil, scheme_cdr, SchemeValue
+from .exception import SchemeError
+from .types import intern, scheme_car, nil, scheme_cdr, SchemeValue
 
 
 class Frame:

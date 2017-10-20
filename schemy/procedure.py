@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Forrest Chang (forrestchang7@gmail.com)
-from schemy.eval import proper_tail_recursion, scheme_eval, nil
-from schemy.exception import SchemeError
-from schemy.types import SchemeValue
+from .eval import proper_tail_recursion, scheme_eval, nil
+from .exception import SchemeError
+from .types import SchemeValue
 
 
 class Procedure(SchemeValue):

@@ -8,7 +8,7 @@ from .utils import main, trace
 
 def scheme_eval(expr, env):
     """
-    Evaluate Scheme expression expr in env. I fenv is None, simply
+    Evaluate Scheme expression expr in env. If env is None, simply
     returns expr as its value without futher evaluation.
 
     >>> expr = read_line("(+ 1 2)")
